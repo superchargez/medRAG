@@ -1,0 +1,15 @@
+test*
+test**
+
+*.ignore
+.env
+__pycache__/
+*.pyc
+.vscode/
+.DS_Store
+
+chroma/
+data/
+
+.ruff_cache/
+
