@@ -1,4 +1,4 @@
-# frontend.py
+# apps/v1_standard/assistant_ui.py
 import gradio as gr
 import requests
 import json

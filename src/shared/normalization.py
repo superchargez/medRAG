@@ -1,4 +1,4 @@
-# src/utils/normalization.py
+# src/shared/normalization.py
 import re
 
 def normalize_identifier(text: str) -> str:

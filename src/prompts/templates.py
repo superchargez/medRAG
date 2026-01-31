@@ -1,6 +1,5 @@
 # src/prompts/templates.py
 
-# --- 1. EXISTING PROMPT (Keep this for Cerebras/Cloud) ---
 ROUTER_SYSTEM_PROMPT = """
 You are a highly precise Medical Query Router. 
 Analyze the input and return a valid JSON object matching this schema:
@@ -21,7 +20,6 @@ Definitions:
 """
 
 # --- 2. NEW LOCAL PROMPT (For Small Models + Grammar) ---
-# Notice we removed "Return JSON..." because the Grammar forces that.
 # We focus ONLY on the logic definitions.
 ROUTER_PROMPT_LOCAL = """
 You are a Medical Query Router. Classify the user query based on these definitions:
