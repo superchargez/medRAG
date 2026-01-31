@@ -1,4 +1,4 @@
-# src/core/llm.py
+# src/shared/llm.py
 import requests
 import json
 from cerebras.cloud.sdk import Cerebras

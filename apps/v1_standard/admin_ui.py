@@ -1,4 +1,4 @@
-# admin_frontend.py
+# apps/v1_standard/admin_ui.py
 import gradio as gr
 import requests
 import json

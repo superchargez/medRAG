@@ -1,4 +1,4 @@
-# src/core/router.py
+# src/v1_core/router.py
 from src.shared.llm import get_cerebras_client
 from src.shared.config import LLM_MODEL_ID, LLM_PROVIDER
 from src.prompts.templates import (

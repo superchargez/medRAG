@@ -1,4 +1,4 @@
-# src\core\identity.py
+# src\v1_core\identity.py
 
 from langchain_chroma import Chroma
 from typing import List, Dict, Any

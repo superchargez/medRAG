@@ -1,4 +1,4 @@
-# ingest_v1.py
+# scripts/ingest_v1.py
 import chromadb
 from langchain_chroma import Chroma
 from langchain_community.document_loaders import WikipediaLoader

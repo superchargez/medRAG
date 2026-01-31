@@ -1,3 +1,5 @@
+# src/shared/helpers.py
+
 import hashlib
 import json
 
