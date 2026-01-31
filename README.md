@@ -1,6 +1,6 @@
 # 🏥 MediFlow: Clinical RAG & Identity Assistant
 
-[![MediFlow CI/CD](https://github.com/YOUR_USERNAME/med_interview/actions/workflows/release.yml/badge.svg)](https://github.com/YOUR_USERNAME/med_interview/actions)
+[![MediFlow CI/CD](https://github.com/superchargez/med_interview/actions/workflows/release.yml/badge.svg)](https://github.com/superchargez/med_interview/actions)
 ![Python](https://img.shields.io/badge/python-3.12+-blue.svg)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green.svg)
 ![ChromaDB](https://img.shields.io/badge/VectorDB-Chroma-orange.svg)
