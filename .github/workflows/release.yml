@@ -47,7 +47,7 @@ jobs:
           # Run pytest (ensure you have some files in /test)
           pytest test/
 
-  # This part is great for "interview talk" - building the image
+  # This is building the image
   docker-build:
     needs: build-and-test
     runs-on: ubuntu-latest
