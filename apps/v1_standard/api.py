@@ -1,4 +1,4 @@
-# main_api.py
+# api.py
 from fastapi import FastAPI
 import chromadb
 from langchain_chroma import Chroma
@@ -6,18 +6,19 @@ import uvicorn
 
 from pydantic import BaseModel
 from langchain_core.documents import Document
-from src.config import INDEXING_BATCH_SIZE
+from src.shared.config import INDEXING_BATCH_SIZE
 
 # --- IMPORTS ---
-from src.config import *
-from src.core.embedding import RemoteEmbeddingFunction
-from src.core.llm import get_cerebras_client
-from src.core.router import get_routing_decision
-from src.core.identity import resolve_patient_identity
-from src.core.retriever import get_wiki_context, get_patient_context
+from src.shared.config import *
+from src.shared.embedding import RemoteEmbeddingFunction
+from src.shared.llm import get_cerebras_client
+from src.v1_core.router import get_routing_decision
+from src.v1_core.identity import resolve_patient_identity
+from src.v1_core.patients_ import get_patient_context
+from src.shared.wiki_ import get_wiki_context
 from src.prompts.templates import SAFETY_SYNTHESIS_PROMPT
-from src.utils.normalization import normalize_identifier
-from src.utils.normalization import extract_potential_id
+from src.shared.normalization import normalize_identifier
+from src.shared.normalization import extract_potential_id
 
 app = FastAPI(title="MediFlow RAG API")
 

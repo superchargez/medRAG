@@ -1,4 +1,4 @@
-# ingest_data.py
+# ingest_v1.py
 import chromadb
 from langchain_chroma import Chroma
 from langchain_community.document_loaders import WikipediaLoader
@@ -9,10 +9,10 @@ from faker import Faker
 from langchain_community.indexes._sql_record_manager import SQLRecordManager
 
 # --- IMPORTS FROM CONFIG ---
-from src.config import *
-from src.core.embedding import RemoteEmbeddingFunction
+from src.shared.config import *
+from src.shared.embedding import RemoteEmbeddingFunction
 # NEW: Import normalization to ensure seed data matches API logic
-from src.utils.normalization import normalize_identifier
+from src.shared.normalization import normalize_identifier
 
 def main():
     print("--- 🚀 STARTING INGESTION ---")

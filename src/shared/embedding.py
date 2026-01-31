@@ -1,4 +1,4 @@
-# core/embedding.py
+# src/shared/embedding.py
 import requests
 from typing import List
 from langchain_core.embeddings import Embeddings

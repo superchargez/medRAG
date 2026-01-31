@@ -2,7 +2,7 @@
 import requests
 import json
 from cerebras.cloud.sdk import Cerebras
-from src.config import CEREBRAS_API_KEY, LLM_PROVIDER, LOCAL_LLM_URL
+from src.shared.config import CEREBRAS_API_KEY, LLM_PROVIDER, LOCAL_LLM_URL
 
 # --- 1. Define Mock Classes to Mimic OpenAI/Cerebras Response Structure ---
 class MockMessage:

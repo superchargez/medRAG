@@ -1,12 +1,12 @@
 # src/core/router.py
-from src.core.llm import get_cerebras_client
-from src.config import LLM_MODEL_ID, LLM_PROVIDER
+from src.shared.llm import get_cerebras_client
+from src.shared.config import LLM_MODEL_ID, LLM_PROVIDER
 from src.prompts.templates import (
     ROUTER_SYSTEM_PROMPT, 
     ROUTER_PROMPT_LOCAL, 
     ROUTER_GRAMMAR
 )
-from src.utils.helpers import clean_and_parse_json
+from src.shared.helpers import clean_and_parse_json
 from pydantic import BaseModel, Field
 from typing import Literal, Optional, List
 from src.prompts.templates import ROUTER_SYSTEM_PROMPT

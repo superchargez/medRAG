@@ -2,7 +2,7 @@
 
 from langchain_chroma import Chroma
 from typing import List, Dict, Any
-from src.utils.normalization import normalize_identifier
+from src.shared.normalization import normalize_identifier
 import re
 
 def resolve_patient_identity(user_query: str, patient_store: Chroma, threshold: float = 0.7) -> Dict[str, Any]:
