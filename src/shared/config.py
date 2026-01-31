@@ -39,3 +39,8 @@ COLLECTION_METADATA = {
 }
 INDEXING_BATCH_SIZE = 500
 INDEXING_CLEANUP = "incremental"
+
+# --- Postgres Connection String ---
+user = os.getenv("POSTGRES_USER")
+paswd = os.getenv("POSTGRES_PASSWORD")
+POSTGRES_DB_URL = os.getenv("POSTGRES_DB_URL", f"postgresql://{user}:{paswd}@localhost:5432/mediflow")
