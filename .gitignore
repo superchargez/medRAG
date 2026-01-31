@@ -13,3 +13,4 @@ data/
 
 .ruff_cache/
 
+.gitignore

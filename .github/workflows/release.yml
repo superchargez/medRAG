@@ -1,0 +1,58 @@
+name: MediFlow CI/CD
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  quality-control:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          
+      - name: Install Linting Tools
+        run: |
+          pip install ruff
+          
+      - name: Run Ruff (Linter)
+        run: ruff check .
+        
+      - name: Static Type Check (Optional)
+        run: |
+          pip install mypy
+          # Run on src to ensure logic is sound
+          mypy src --ignore-missing-imports
+
+  build-and-test:
+    needs: quality-control
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          
+      - name: Run Tests
+        run: |
+          # Create a dummy .env for testing
+          echo "CEREBRAS_API_KEY=mock_key" > .env
+          # Run pytest (ensure you have some files in /test)
+          pytest test/
+
+  # This part is great for "interview talk" - building the image
+  docker-build:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker Image
+        run: |
+          docker build -t mediflow-api:latest .
