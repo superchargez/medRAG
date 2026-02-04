@@ -8,6 +8,7 @@ from faker import Faker
 from langchain_community.document_loaders import WikipediaLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 import traceback
+import time
 
 # Imports
 from src.shared.config import EMBEDDING_API_URL
@@ -38,17 +39,13 @@ def main():
         try:
             # 1. SETUP DATABASE SCHEMA
             print("   > Setting up Database Schema...")
-            
-            # Enable vector extension if not enabled (usually enabled by default in turso dev)
-            # conn.execute(text("INSTALL vector;")) 
-            # conn.execute(text("LOAD vector;"))
-            
-            # conn.execute(text("DROP TABLE IF EXISTS clinical_notes"))
-            # conn.execute(text("DROP TABLE IF EXISTS medical_knowledge"))
-            # conn.execute(text("DROP TABLE IF EXISTS patients"))
+                        
+            conn.execute(text("DROP TABLE IF EXISTS clinical_notes"))
+            conn.execute(text("DROP TABLE IF EXISTS medical_knowledge"))
+            conn.execute(text("DROP TABLE IF EXISTS patients"))
             
             conn.execute(text("""
-                CREATE TABLE patients (
+                CREATE TABLE IF NOT EXISTS patients (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     system_id TEXT UNIQUE NOT NULL,
                     full_name TEXT NOT NULL,
@@ -61,7 +58,7 @@ def main():
             
             # Note: F32_BLOB(768) is the specific type for Turso vectors
             conn.execute(text("""
-                CREATE TABLE clinical_notes (
+                CREATE TABLE IF NOT EXISTS clinical_notes (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     patient_id INTEGER NOT NULL,
                     visit_date TEXT NOT NULL,
@@ -73,7 +70,7 @@ def main():
             """))
             
             conn.execute(text("""
-                CREATE TABLE medical_knowledge (
+                CREATE TABLE IF NOT EXISTS medical_knowledge (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     topic TEXT NOT NULL,
                     content TEXT NOT NULL,
@@ -82,12 +79,12 @@ def main():
             """))
             
             print("   > Creating Indexes...")
-            conn.execute(text("CREATE INDEX idx_patients_system_id ON patients(system_id)"))
-            conn.execute(text("CREATE INDEX idx_notes_patient_id ON clinical_notes(patient_id)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_patients_system_id ON patients(system_id)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_notes_patient_id ON clinical_notes(patient_id)"))
             
-            # Vector Indexes
-            conn.execute(text("CREATE INDEX idx_notes_vector ON clinical_notes(libsql_vector_idx(embedding))"))
-            conn.execute(text("CREATE INDEX idx_knowledge_vector ON medical_knowledge(libsql_vector_idx(embedding))"))
+            # Vector Indexes 
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_notes_vector ON clinical_notes(libsql_vector_idx(embedding))"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_knowledge_vector ON medical_knowledge(libsql_vector_idx(embedding))"))
             
             conn.commit() # Commit schema changes
             print("   ✓ Database schema created")
@@ -97,6 +94,7 @@ def main():
             topics = ["Asthma", "Hypertension", "Diabetes", "Lisinopril", "Aspirin"]
             
             for topic in topics:
+                time.sleep(5) # Be polite to Wikipedia
                 try:
                     print(f"   - Fetching: {topic}...")
                     loader = WikipediaLoader(query=topic, load_max_docs=1)
@@ -149,7 +147,7 @@ def main():
             hero_id = result.scalar()
             
             # Hero Note
-            note_text = "Patient complains of severe headache. BP 160/100. Diagnosis: Hypertension."
+            note_text = "Patient complains of severe headache. BP 160/100. Diagnosis: Hypertension. He is also suffering from shortness of breath"
             vec_str = json.dumps(embed_fn.embed_query(note_text))
             
             conn.execute(
