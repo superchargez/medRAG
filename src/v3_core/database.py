@@ -7,7 +7,7 @@ from sqlalchemy.pool import NullPool
 
 # Ensure we have the libsql dialect registered
 try:
-    # import libsql_experimental
+    import libsql_experimental
     print("✓ libsql-experimental dialect registered")
 except ImportError:
     print("⚠ libsql-experimental not installed. Run: pip install libsql-experimental")
@@ -15,6 +15,7 @@ except ImportError:
 if "sqlite+libsql" in TURSO_DB_URL:
     DATABASE_URL = TURSO_DB_URL
 elif TURSO_DB_URL.startswith("http"):
+    # Convert http://127.0.0.1:8008 -> sqlite+libsql://127.0.0.1:8008
     clean_url = TURSO_DB_URL.replace("http://", "").replace("https://", "")
     DATABASE_URL = f"sqlite+libsql://{clean_url}"
 else:
