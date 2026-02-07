@@ -99,52 +99,57 @@ class PatientConditionTool(BaseTool):
     args_schema: Type[BaseModel] = ConditionInput
 
     def _run(self, patient_ids: List[int], medical_concept: str):
-        if not patient_ids: return "No patient IDs provided."
-        
-        log_action("VECTOR", f"Embedding concept: '{medical_concept}'")
-        query_vector = embed_fn.embed_query(medical_concept)
-        query_vec_str = json.dumps(query_vector)
-
-        conn = get_connection()
-        cur = conn.cursor()
-        try:
-            placeholders = ','.join(['?'] * len(patient_ids))
-            sql = f"""
-                SELECT p.id, p.full_name, cn.note_content, 
-                       vector_distance_cos(cn.embedding, vector32(?)) as distance
-                FROM clinical_notes cn
-                JOIN patients p ON p.id = cn.patient_id
-                WHERE p.id IN ({placeholders})
-                ORDER BY distance ASC
-            """
-            params = [query_vec_str] + patient_ids
+            if not patient_ids: return "No patient IDs provided."
             
-            log_action("SQL", f"Executing Vector Search SQL on {len(patient_ids)} patients...")
-            cur.execute(sql, params)
-            rows = cur.fetchall()
+            log_action("VECTOR", f"Embedding concept: '{medical_concept}'")
+            query_vector = embed_fn.embed_query(medical_concept)
+            query_vec_str = json.dumps(query_vector)
 
-            results = []
-            for r in rows:
-                p_id, name, content, dist = r
-                # < 0.35 is a strong match, < 0.45 is weak
-                if dist < 0.5:
-                    match_type = "HIGH" if dist < 0.35 else "LOW"
-                    log_action("VECTOR", f"Match found: {name} ({match_type} - {dist:.3f})")
-                    results.append({
-                        "patient": f"{name} (ID: {p_id})",
-                        "match_confidence": match_type,
-                        "note_excerpt": content[:150] + "..."
-                    })
+            conn = get_connection()
+            cur = conn.cursor()
+            try:
+                placeholders = ','.join(['?'] * len(patient_ids))
+                sql = f"""
+                    SELECT p.id, p.full_name, cn.note_content, 
+                        vector_distance_cos(cn.embedding, vector32(?)) as distance
+                    FROM clinical_notes cn
+                    JOIN patients p ON p.id = cn.patient_id
+                    WHERE p.id IN ({placeholders})
+                    ORDER BY distance ASC
+                """
+                params = [query_vec_str] + patient_ids
+                
+                log_action("SQL", f"Executing: SELECT ... FROM clinical_notes WHERE p.id IN ({patient_ids})")
+                
+                cur.execute(sql, params)
+                rows = cur.fetchall()
 
-            if not results:
-                log_action("VECTOR", "No semantic matches found.")
-                return f"No notes matched '{medical_concept}'."
+                results = []
+                for r in rows:
+                    p_id, name, content, dist = r
+                    
+                    if dist < 0.5:
+                        match_type = "HIGH CONFIDENCE" if dist < 0.35 else "LOW CONFIDENCE"
+                        
+                        # Log the specific distance so you can debug
+                        log_action("VECTOR", f"Match: {name} | Dist: {dist:.3f} | Type: {match_type}")
+                        
+                        results.append({
+                            "patient": f"{name} (ID: {p_id})",
+                            "match_status": match_type, 
+                            "semantic_distance": f"{dist:.3f}",
+                            "note_excerpt": content[:150] + "..."
+                        })
 
-            return json.dumps(results, indent=2)
-        finally:
-            cur.close()
-            close_connection(conn)
+                if not results:
+                    log_action("VECTOR", "No semantic matches found (All distances > 0.5).")
+                    return f"No notes matched '{medical_concept}'."
 
+                return json.dumps(results, indent=2)
+            finally:
+                cur.close()
+                close_connection(conn)
+                
 # --- TOOL 3: DRUG SAFETY ---
 class DrugSafetyInput(BaseModel):
     drug_name: str = Field(description="Name of the drug")
@@ -155,27 +160,38 @@ class DrugSafetyTool(BaseTool):
     args_schema: Type[BaseModel] = DrugSafetyInput
 
     def _run(self, drug_name: str):
-        log_action("VECTOR", f"Searching Wiki for: {drug_name}")
-        query_vector = embed_fn.embed_query(f"{drug_name} contraindications safety")
-        query_vec_str = json.dumps(query_vector)
-        
-        conn = get_connection()
-        cur = conn.cursor()
-        try:
-            cur.execute("""
-                SELECT topic, content, vector_distance_cos(embedding, vector32(?)) as distance
-                FROM medical_knowledge
-                ORDER BY distance ASC LIMIT 2
-            """, (query_vec_str,))
+            log_action("VECTOR", f"Searching Wiki for: {drug_name}")
+            query_vector = embed_fn.embed_query(f"{drug_name} contraindications safety")
+            query_vec_str = json.dumps(query_vector)
             
-            rows = cur.fetchall()
-            if not rows: return f"No info for {drug_name}."
-            
-            log_action("TOOL", f"Found {len(rows)} wiki articles.")
-            return "\n".join([f"- {r[1]}" for r in rows])
-        finally:
-            cur.close()
-            close_connection(conn)
+            conn = get_connection()
+            cur = conn.cursor()
+            try:
+                sql = """
+                    SELECT id, source_file, content, vector_distance_cos(embedding, vector32(?)) as distance
+                    FROM medical_knowledge
+                    ORDER BY distance ASC LIMIT 2
+                """
+                
+                log_action("SQL", f"Executing Wiki Search: {sql.strip()}")
+                
+                cur.execute(sql, (query_vec_str,))
+                rows = cur.fetchall()
+                
+                if not rows: return f"No info for {drug_name}."
+                
+                log_action("TOOL", f"Found {len(rows)} wiki articles.")
+                
+                results = []
+                for r in rows:
+                    chunk_id, source, content, dist = r
+                    results.append(f"- [Source: {source} | ID: {chunk_id}] {content}")
+                    print(f"\033[93m    -> {source} (ID: {chunk_id}): {content[:60]}...\033[0m")
+                    
+                return "\n\n".join(results)
+            finally:
+                cur.close()
+                close_connection(conn)
 
 # --- TOOL 4: IDENTITY ---
 class IdentityInput(BaseModel):
@@ -199,7 +215,7 @@ class IdentityTool(BaseTool):
             cur.close()
             close_connection(conn)
 
-# --- TOOL 5: SYSTEM STATS (NEW!) ---
+# --- TOOL 5: SYSTEM STATS ---
 class StatsInput(BaseModel):
     query_type: str = Field(description="Type of stat: 'files', 'chunks', 'total_patients'")
 
