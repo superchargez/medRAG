@@ -61,7 +61,7 @@ COLLECTION_METADATA = {
     "hnsw:construction_ef": 200,   
     "hnsw:M": 32,                  
 }
-INDEXING_BATCH_SIZE = 500
+INDEXING_BATCH_SIZE = 64
 INDEXING_CLEANUP = "incremental"
 
 # --- Postgres Connection String ---
